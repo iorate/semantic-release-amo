@@ -1,0 +1,95 @@
+{
+  "name": "semantic-release-amo",
+  "description": "A semantic-release plugin to publish Firefox add-ons to AMO (addons.mozilla.org).",
+  "version": "0.1.0",
+  "author": "iorate",
+  "bugs": {
+    "url": "https://github.com/iorate/semantic-release-amo/issues"
+  },
+  "dependencies": {
+    "@semantic-release/error": "^3.0.0",
+    "aggregate-error": "^4.0.1",
+    "axios": "^1.2.2",
+    "execa": "^6.1.0",
+    "form-data": "^4.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "lodash.template": "^4.5.0",
+    "microstruct": "^2.0.3",
+    "zip-dir": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/lodash.template": "^4.5.1",
+    "@types/node": "^18.11.18",
+    "@types/semantic-release": "^17.2.4",
+    "@typescript-eslint/eslint-plugin": "^5.47.1",
+    "@typescript-eslint/parser": "^5.47.1",
+    "eslint": "^8.30.0",
+    "eslint-config-prettier": "^8.5.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.8.1",
+    "semantic-release": "^19.0.5",
+    "typescript": "^4.9.4"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:@typescript-eslint/recommended-requiring-type-checking",
+      "prettier"
+    ],
+    "ignorePatterns": [
+      "/.yarn",
+      "/dist"
+    ],
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./update-addon": "./dist/update-addon.js"
+  },
+  "files": [
+    "./dist/*.js",
+    "./dist/update-addon.d.ts"
+  ],
+  "homepage": "https://github.com/iorate/semantic-release-amo#readme",
+  "keywords": [
+    "semantic-release",
+    "amo",
+    "firefox",
+    "add-on"
+  ],
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "packageManager": "yarn@3.3.1",
+  "peerDependencies": {
+    "semantic-release": "*"
+  },
+  "prettier": {
+    "arrowParens": "avoid",
+    "printWidth": 100,
+    "singleQuote": true,
+    "trailingComma": "all"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iorate/semantic-release-amo.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "lint": "run-p lint-eslint lint-prettier",
+    "lint-eslint": "eslint .",
+    "lint-prettier": "prettier --check --loglevel warn .",
+    "fix": "run-s fix-eslint fix-prettier",
+    "fix-eslint": "eslint --fix .",
+    "fix-prettier": "prettier --write --loglevel warn ."
+  }
+}
