@@ -16,6 +16,7 @@ async function exists(path: string): Promise<boolean> {
     }
   }
 }
+
 export async function verifyConditions(
   pluginConfig: Readonly<Record<string, unknown>>,
   context: Readonly<Context>,
