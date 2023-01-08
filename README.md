@@ -63,7 +63,6 @@ This plugin makes it possible to submit source code by using
 ### updateAddon
 
 ```typescript
-// Make sure that the `moduleResolution` field in tsconfig.json is set to 'Node16' or 'NodeNext'.
 import { updateAddon } from 'semantic-release-amo/update-addon';
 
 await updateAddon({

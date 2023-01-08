@@ -40,7 +40,8 @@
     ],
     "ignorePatterns": [
       "/.yarn",
-      "/dist"
+      "/dist",
+      "/update-addon.d.ts"
     ],
     "parserOptions": {
       "project": "./tsconfig.json"
@@ -52,7 +53,8 @@
   },
   "files": [
     "./dist/*.js",
-    "./dist/update-addon.d.ts"
+    "./dist/update-addon.d.ts",
+    "./update-addon.d.ts"
   ],
   "homepage": "https://github.com/iorate/semantic-release-amo#readme",
   "keywords": [
@@ -85,9 +87,10 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "lint": "run-p lint-eslint lint-prettier",
+    "lint": "run-p lint-eslint lint-prettier lint-tsc",
     "lint-eslint": "eslint .",
     "lint-prettier": "prettier --check --loglevel warn .",
+    "lint-tsc": "tsc --noEmit",
     "fix": "run-s fix-eslint fix-prettier",
     "fix-eslint": "eslint --fix .",
     "fix-prettier": "prettier --write --loglevel warn ."
