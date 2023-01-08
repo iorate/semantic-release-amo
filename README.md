@@ -51,7 +51,7 @@ This plugin makes it possible to submit source code by using
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `addonId`            | **REQUIRED** The id of the add-on. Can be either a slug or a GUID.                                                             |
 | `addonDirPath`       | **REQUIRED** The path of the directory containing the add-on.                                                                  |
-| `addonZipPath`       | The path of the zip file to archive the add-on. Defaults to `"./sematic-release-amo/${nextRelease.version}.zip"`.              |
+| `addonZipPath`       | The path of the zip file to archive the add-on. Defaults to `"./semantic-release-amo/${nextRelease.version}.zip"`.             |
 | `channel`            | The channel to publish the add-on. Can be either `"listed"` or `"unlisted"`. Defaults to `"listed"`.                           |
 | `approvalNotes`      | The notes for the Mozilla reviewers.                                                                                           |
 | `compatibility`      | The applications that the add-on is compatible with. Can be an array of `"firefox"` or `"android"`. Defaults to `["firefox"]`. |
