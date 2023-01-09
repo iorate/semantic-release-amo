@@ -14,7 +14,7 @@
     "form-data": "^4.0.0",
     "jsonwebtoken": "^9.0.0",
     "lodash.template": "^4.5.0",
-    "microstruct": "^2.0.3",
+    "microstruct": "^2.0.4",
     "zip-dir": "^2.0.0"
   },
   "devDependencies": {

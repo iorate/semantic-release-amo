@@ -3513,12 +3513,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"microstruct@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "microstruct@npm:2.0.3"
+"microstruct@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "microstruct@npm:2.0.4"
   peerDependencies:
     typescript: ">=4.1.2"
-  checksum: 2f47e3afd7194aed569f1d2f6b1df0e2cd1435da2c401b72a5d7df1ef217732f8ae8a3edf057aacd989c2cd84b2298e9124e9839122f8558cb7ce3d473148d9b
+  checksum: 29bd0027cb3e054c9908ed9832edeadadf549b5d1ce01d9f963ddeddbaed431ca3c2c575bfda6a279ae80915fa7723a4d9813cd9a0342098508dfa13e6ed0d05
   languageName: node
   linkType: hard
 
@@ -4946,7 +4946,7 @@ __metadata:
     form-data: ^4.0.0
     jsonwebtoken: ^9.0.0
     lodash.template: ^4.5.0
-    microstruct: ^2.0.3
+    microstruct: ^2.0.4
     npm-run-all: ^4.1.5
     prettier: ^2.8.2
     semantic-release: ^19.0.5
