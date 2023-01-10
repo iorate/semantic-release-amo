@@ -33,7 +33,7 @@ export type UpdateAddonParams = {
 export async function updateAddon({
   apiKey,
   apiSecret,
-  baseURL = 'https://addons.mozilla.org/api/v5/addons/',
+  baseURL = 'https://addons.mozilla.org/',
   addonId,
   addonZipPath,
   channel = 'listed',
@@ -98,7 +98,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   try {
     const response = await axios({
-      url: new URL(path, baseURL).toString(),
+      url: new URL(`/api/v5/addons/${path}`, baseURL).toString(),
       method,
       headers: {
         Authorization: `JWT ${jwtSign(apiKey, apiSecret)}`,
@@ -147,7 +147,7 @@ type Version = S.Infer<typeof versionStruct>;
 
 function createVersion(
   apiParams: Readonly<APIParams>,
-  addonGuid: string,
+  addonId: string,
   body: Readonly<{
     upload: string;
     approval_notes?: string;
@@ -155,24 +155,18 @@ function createVersion(
     release_notes?: Readonly<Record<string, string>>;
   }>,
 ): Promise<Version> {
-  return apiFetch(apiParams, 'POST', `addon/${addonGuid}/versions/`, body, versionStruct);
+  return apiFetch(apiParams, 'POST', `addon/${addonId}/versions/`, body, versionStruct);
 }
 
 function patchVersion(
   apiParams: Readonly<APIParams>,
-  addonGuid: string,
+  addonId: string,
   id: number,
   { source }: Readonly<{ source: fs.ReadStream }>,
 ): Promise<Version> {
   const formData = new FormData();
   formData.append('source', source);
-  return apiFetch(
-    apiParams,
-    'PATCH',
-    `addon/${addonGuid}/versions/${id}/`,
-    formData,
-    versionStruct,
-  );
+  return apiFetch(apiParams, 'PATCH', `addon/${addonId}/versions/${id}/`, formData, versionStruct);
 }
 
 function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promise<void> {

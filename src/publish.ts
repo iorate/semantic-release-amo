@@ -4,7 +4,7 @@ import { UpdateAddonError, updateAddon } from './update-addon';
 export async function publish(
   pluginConfig: Readonly<PluginConfig>,
   context: Readonly<FullContext>,
-): Promise<void> {
+): Promise<{ name: string; url: string }> {
   const {
     addonId,
     addonZipPath: addonZipPathTemplate,
@@ -18,12 +18,12 @@ export async function publish(
   const addonZipPath = applyContext(addonZipPathTemplate, context);
   const sourceZipPath = applyContext(sourceZipPathTemplate, context);
   const { env, logger, nextRelease } = context;
+  const baseURL = env.AMO_BASE_URL ?? 'https://addons.mozilla.org/';
 
   if (approvalNotes === '') {
     logger.warn('Approval notes are empty. Skipping submission of approval notes.');
   }
-  const releaseNotes = nextRelease.notes;
-  if (submitReleaseNotes && !releaseNotes) {
+  if (submitReleaseNotes && !nextRelease.notes) {
     logger.warn('Release notes are empty. Skipping submission of release notes.');
   }
 
@@ -33,13 +33,13 @@ export async function publish(
       apiKey: env.AMO_API_KEY!,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       apiSecret: env.AMO_API_SECRET!,
-      baseURL: env.AMO_BASE_URL ?? 'https://addons.mozilla.org/api/v5/addons/',
+      baseURL,
       addonId,
       addonZipPath,
       channel,
       approvalNotes: approvalNotes || null,
       compatibility,
-      releaseNotes: (submitReleaseNotes && releaseNotes) || null,
+      releaseNotes: (submitReleaseNotes && nextRelease.notes) || null,
       sourceZipPath: submitSource ? sourceZipPath : null,
       logger,
     });
@@ -50,4 +50,9 @@ export async function publish(
       throw error;
     }
   }
+
+  return {
+    name: 'Firefox Add-ons',
+    url: new URL(`/en-US/firefox/addon/${addonId}/`, baseURL).toString(),
+  };
 }

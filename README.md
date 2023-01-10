@@ -39,11 +39,11 @@ This plugin makes it possible to submit source code by using
 
 ## Environment variables
 
-| Variable         | Description                                                                |
-| ---------------- | -------------------------------------------------------------------------- |
-| `AMO_API_KEY`    | **REQUIRED** The API key to publish the add-on to AMO.                     |
-| `AMO_API_SECRET` | **REQUIRED** The API secret to publish the add-on to AMO.                  |
-| `AMO_BASE_URL`   | The API base URL. Defaults to `https://addons.mozilla.org/api/v5/addons/`. |
+| Variable         | Description                                                     |
+| ---------------- | --------------------------------------------------------------- |
+| `AMO_API_KEY`    | **REQUIRED** The API key to publish the add-on to AMO.          |
+| `AMO_API_SECRET` | **REQUIRED** The API secret to publish the add-on to AMO.       |
+| `AMO_BASE_URL`   | The base URL of AMO. Defaults to `https://addons.mozilla.org/`. |
 
 ## Options
 
@@ -68,7 +68,7 @@ import { updateAddon } from 'semantic-release-amo/update-addon';
 await updateAddon({
   apiKey: '...',
   apiSecret: '...',
-  baseURL: 'https://addons.mozilla.org/api/v5/addons/', // optional, defaults to 'https://addons.mozilla.org/api/v5/addons/'
+  baseURL: 'https://addons.mozilla.org/', // optional, defaults to 'https://addons.mozilla.org/'
   addonId: '...',
   addonZipPath: await generateAddonZip(),
   channel: 'listed', // optional, defaults to 'listed'
