@@ -1,5 +1,15 @@
+import { marked } from 'marked';
 import { FullContext, PluginConfig, applyContext, applyDefaults, createError } from './common';
 import { UpdateAddonError, updateAddon } from './update-addon';
+
+function parseReleaseNotes(releaseNotes: string): string {
+  marked.use({
+    renderer: {
+      heading: text => `\n<b>${text}</b>\n`,
+    },
+  });
+  return marked.parse(releaseNotes).trim();
+}
 
 export async function publish(
   pluginConfig: Readonly<PluginConfig>,
@@ -39,7 +49,8 @@ export async function publish(
       channel,
       approvalNotes: approvalNotes || null,
       compatibility,
-      releaseNotes: (submitReleaseNotes && nextRelease.notes) || null,
+      releaseNotes:
+        submitReleaseNotes && nextRelease.notes ? parseReleaseNotes(nextRelease.notes) : null,
       sourceZipPath: submitSource ? sourceZipPath : null,
       logger,
     });
