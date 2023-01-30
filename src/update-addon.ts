@@ -5,9 +5,9 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 export class UpdateAddonError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly details?: string) {
     super(message);
-    this.name = this.constructor.name;
+    this.name = 'UpdateAddonError';
   }
 }
 
@@ -83,7 +83,8 @@ function jwtSign(key: string, secret: string): string {
 
 function throwBadResponse(path: string, response: AxiosResponse): never {
   throw new UpdateAddonError(
-    `Bad response from ${path} with ${response.status}: ${JSON.stringify(response.data)}`,
+    `Bad response from ${path} with status ${response.status}`,
+    JSON.stringify(response.data),
   );
 }
 
@@ -187,7 +188,7 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
             if (valid) {
               resolve();
             } else {
-              reject(new UpdateAddonError(`Validation error: ${JSON.stringify(validation)}`));
+              reject(new UpdateAddonError('Validation error', JSON.stringify(validation)));
             }
           } else {
             intervalId = setTimeout(poll, 1000); // 1 second

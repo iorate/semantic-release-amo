@@ -51,7 +51,7 @@ export async function publish(
     });
   } catch (error: unknown) {
     if (error instanceof UpdateAddonError) {
-      throw createError(error.message);
+      throw createError(error.message, error.details);
     } else {
       throw error;
     }
