@@ -50,7 +50,17 @@ export async function verifyConditions(
   }
 
   if (errors.length) {
-    const { default: AggregateError } = await import('aggregate-error');
+    const { default: _AggregateError } = await import('aggregate-error');
+    class AggregateError extends _AggregateError {
+      constructor(errors: readonly Error[]) {
+        super(errors);
+      }
+      *[Symbol.iterator](): IterableIterator<Error> {
+        for (const error of this.errors) {
+          yield error;
+        }
+      }
+    }
     throw new AggregateError(errors);
   }
 }
