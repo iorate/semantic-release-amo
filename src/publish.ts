@@ -30,19 +30,14 @@ export async function publish(
   const { env, logger, nextRelease } = context;
   const baseURL = env.AMO_BASE_URL ?? 'https://addons.mozilla.org/';
 
-  if (approvalNotes === '') {
-    logger.warn('Approval notes are empty. Skipping submission of approval notes.');
-  }
   if (submitReleaseNotes && !nextRelease.notes) {
     logger.warn('Release notes are empty. Skipping submission of release notes.');
   }
 
   try {
     await updateAddon({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      apiKey: env.AMO_API_KEY!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      apiSecret: env.AMO_API_SECRET!,
+      apiKey: env.AMO_API_KEY,
+      apiSecret: env.AMO_API_SECRET,
       baseURL,
       addonId,
       addonZipPath,

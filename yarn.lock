@@ -835,23 +835,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aggregate-error@npm:^3.0.0":
+"aggregate-error@npm:^3.0.0, aggregate-error@npm:^3.1.0":
   version: 3.1.0
   resolution: "aggregate-error@npm:3.1.0"
   dependencies:
     clean-stack: ^2.0.0
     indent-string: ^4.0.0
   checksum: 1101a33f21baa27a2fa8e04b698271e64616b886795fd43c31068c07533c7b3facfcaf4e9e0cab3624bd88f729a592f1c901a1a229c9e490eafce411a8644b79
-  languageName: node
-  linkType: hard
-
-"aggregate-error@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "aggregate-error@npm:4.0.1"
-  dependencies:
-    clean-stack: ^4.0.0
-    indent-string: ^5.0.0
-  checksum: bb3ffdfd13447800fff237c2cba752c59868ee669104bb995dfbbe0b8320e967d679e683dabb640feb32e4882d60258165cde0baafc4cd467cc7d275a13ad6b5
   languageName: node
   linkType: hard
 
@@ -1206,15 +1196,6 @@ __metadata:
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
   checksum: 2ac8cd2b2f5ec986a3c743935ec85b07bc174d5421a5efc8017e1f146a1cf5f781ae962618f416352103b32c9cd7e203276e8c28241bbe946160cab16149fb68
-  languageName: node
-  linkType: hard
-
-"clean-stack@npm:^4.0.0":
-  version: 4.2.0
-  resolution: "clean-stack@npm:4.2.0"
-  dependencies:
-    escape-string-regexp: 5.0.0
-  checksum: 373f656a31face5c615c0839213b9b542a0a48057abfb1df66900eab4dc2a5c6097628e4a0b5aa559cdfc4e66f8a14ea47be9681773165a44470ef5fb8ccc172
   languageName: node
   linkType: hard
 
@@ -1754,13 +1735,6 @@ __metadata:
   version: 3.1.1
   resolution: "escalade@npm:3.1.1"
   checksum: a3e2a99f07acb74b3ad4989c48ca0c3140f69f923e56d0cba0526240ee470b91010f9d39001f2a4a313841d237ede70a729e92125191ba5d21e74b106800b133
-  languageName: node
-  linkType: hard
-
-"escape-string-regexp@npm:5.0.0":
-  version: 5.0.0
-  resolution: "escape-string-regexp@npm:5.0.0"
-  checksum: 20daabe197f3cb198ec28546deebcf24b3dbb1a5a269184381b3116d12f0532e06007f4bc8da25669d6a7f8efb68db0758df4cd981f57bc5b57f521a3e12c59e
   languageName: node
   linkType: hard
 
@@ -2606,13 +2580,6 @@ __metadata:
   version: 4.0.0
   resolution: "indent-string@npm:4.0.0"
   checksum: 824cfb9929d031dabf059bebfe08cf3137365e112019086ed3dcff6a0a7b698cb80cf67ccccde0e25b9e2d7527aa6cc1fed1ac490c752162496caba3e6699612
-  languageName: node
-  linkType: hard
-
-"indent-string@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "indent-string@npm:5.0.0"
-  checksum: e466c27b6373440e6d84fbc19e750219ce25865cb82d578e41a6053d727e5520dc5725217d6eb1cc76005a1bb1696a0f106d84ce7ebda3033b963a38583fb3b3
   languageName: node
   linkType: hard
 
@@ -3517,15 +3484,6 @@ __metadata:
     braces: ^3.0.2
     picomatch: ^2.3.1
   checksum: 02a17b671c06e8fefeeb6ef996119c1e597c942e632a21ef589154f23898c9c6a9858526246abb14f8bca6e77734aa9dcf65476fca47cedfb80d9577d52843fc
-  languageName: node
-  linkType: hard
-
-"microstruct@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "microstruct@npm:2.0.4"
-  peerDependencies:
-    typescript: ">=4.1.2"
-  checksum: 29bd0027cb3e054c9908ed9832edeadadf549b5d1ce01d9f963ddeddbaed431ca3c2c575bfda6a279ae80915fa7723a4d9813cd9a0342098508dfa13e6ed0d05
   languageName: node
   linkType: hard
 
@@ -4946,7 +4904,7 @@ __metadata:
     "@types/semantic-release": ^17.2.5
     "@typescript-eslint/eslint-plugin": ^5.48.1
     "@typescript-eslint/parser": ^5.48.1
-    aggregate-error: ^4.0.1
+    aggregate-error: ^3.1.0
     axios: ^1.2.2
     eslint: ^8.31.0
     eslint-config-prettier: ^8.6.0
@@ -4955,12 +4913,13 @@ __metadata:
     jsonwebtoken: ^9.0.0
     lodash.template: ^4.5.0
     marked: ^4.2.5
-    microstruct: ^2.0.4
     npm-run-all: ^4.1.5
     prettier: ^2.8.2
     semantic-release: ^19.0.5
     typescript: ^4.9.4
     zip-dir: ^2.0.0
+    zod: ^3.20.2
+    zod-validation-error: ^0.3.0
   peerDependencies:
     semantic-release: "*"
   languageName: unknown
@@ -5904,5 +5863,21 @@ __metadata:
     async: ^3.2.0
     jszip: ^3.2.2
   checksum: bfcfdefe410da3dd583f294b51db8dd670e6b4f742c95255e526df58cb9302e3c742fe84a0834fe4705c72c9c601fc3a14d7402560ce580a1ae3bd307cbed60c
+  languageName: node
+  linkType: hard
+
+"zod-validation-error@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "zod-validation-error@npm:0.3.0"
+  peerDependencies:
+    zod: ^3.18.0
+  checksum: 06fb080ee3e9db1a2c322c006c5a4fe3f4ec89ce3d58712ec18d260edcf81d0a7a38a9e984e430f46b4d335afb0a18f560838aef8c7b8f57e2279e1488c620fe
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.20.2":
+  version: 3.20.2
+  resolution: "zod@npm:3.20.2"
+  checksum: 04172f7e9350372684ccd298d4716908edc9113751295b6c4e1b3ea84e2af8997e504b33ba36f4741417bb2a5dc90bfd40501f6b0e7389df10e42a63d6d8366c
   languageName: node
   linkType: hard

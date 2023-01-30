@@ -1,25 +1,25 @@
 import SemanticReleaseError from '@semantic-release/error';
 import template from 'lodash.template';
-import * as S from 'microstruct';
 import type { Context } from 'semantic-release';
+import { z } from 'zod';
 
-export function createError(message: string): SemanticReleaseError {
-  return new SemanticReleaseError(message, '\u{1f98a}');
+export function createError(message: string, details?: string): SemanticReleaseError {
+  return new SemanticReleaseError(message, '\u{1f98a}', details);
 }
 
-export const pluginConfigStruct = S.type({
-  addonId: S.string(),
-  addonDirPath: S.string(),
-  addonZipPath: S.optional(S.string()),
-  channel: S.optional(S.enums(['unlisted', 'listed'] as const)),
-  approvalNotes: S.optional(S.nullable(S.string())),
-  compatibility: S.optional(S.array(S.enums(['android', 'firefox'] as const))),
-  submitReleaseNotes: S.optional(S.boolean()),
-  submitSource: S.optional(S.boolean()),
-  sourceZipPath: S.optional(S.string()),
+export const pluginConfigSchema = z.object({
+  addonId: z.string(),
+  addonDirPath: z.string(),
+  addonZipPath: z.string().optional(),
+  channel: z.enum(['unlisted', 'listed']).optional(),
+  approvalNotes: z.string().min(1).nullable().optional(),
+  compatibility: z.enum(['android', 'firefox']).array().min(1).optional(),
+  submitReleaseNotes: z.boolean().optional(),
+  submitSource: z.boolean().optional(),
+  sourceZipPath: z.string().optional(),
 });
 
-export type PluginConfig = S.Infer<typeof pluginConfigStruct>;
+export type PluginConfig = NoUndefined<z.infer<typeof pluginConfigSchema>>;
 
 export function applyDefaults(pluginConfig: Readonly<PluginConfig>): Required<PluginConfig> {
   return {
@@ -34,8 +34,16 @@ export function applyDefaults(pluginConfig: Readonly<PluginConfig>): Required<Pl
   };
 }
 
-// For `prepare` and `publish` steps
-export type FullContext = { [K in keyof Context]-?: Exclude<Context[K], undefined> };
+export const envSchema = z.object({
+  AMO_API_KEY: z.string(),
+  AMO_API_SECRET: z.string(),
+  AMO_BASE_URL: z.string().url().optional(),
+});
+
+export type Env = NoUndefined<z.infer<typeof envSchema>>;
+
+// For the `prepare` and `publish` steps
+export type FullContext = Required<NoUndefined<Context>> & { env: Env };
 
 export function applyContext(
   temp: string,
@@ -43,3 +51,6 @@ export function applyContext(
 ): string {
   return template(temp)({ branch, lastRelease, nextRelease, commits });
 }
+
+// "exactOptionalPropertyTypes": true
+type NoUndefined<T> = { [K in keyof T]: Exclude<T[K], undefined> };

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import * as S from 'microstruct';
 import zipDir from 'zip-dir';
+import { z } from 'zod';
 import { FullContext, PluginConfig, applyContext, applyDefaults, createError } from './common';
 
 export async function prepare(
@@ -20,9 +20,11 @@ export async function prepare(
 
   logger.log('Updating manifest.json...');
   const manifestJsonPath = path.join(addonDirPath, 'manifest.json');
-  const mainfestJson = await fs.readFile(manifestJsonPath, 'utf8');
-  const manifest = S.parse(mainfestJson, S.type({ version: S.optional(S.string()) }));
-  if (!manifest) {
+  const manifestJson = await fs.readFile(manifestJsonPath, 'utf8');
+  let manifest;
+  try {
+    manifest = z.record(z.string(), z.unknown()).parse(JSON.parse(manifestJson));
+  } catch {
     throw createError(`Invalid manifest.json: ${manifestJsonPath}`);
   }
   manifest.version = nextRelease.version;

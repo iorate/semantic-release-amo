@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import * as S from 'microstruct';
 import type { Context } from 'semantic-release';
-import { createError, pluginConfigStruct } from './common';
+import { fromZodError } from 'zod-validation-error';
+import { createError, envSchema, pluginConfigSchema } from './common';
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -25,22 +25,28 @@ export async function verifyConditions(
 
   const errors = [];
 
-  if (!S.is(pluginConfig, pluginConfigStruct)) {
-    errors.push(createError(`Invalid plugin config: ${JSON.stringify(pluginConfig)}`));
-  } else if (!(await exists(pluginConfig.addonDirPath))) {
-    errors.push(createError(`Missing add-on directory: ${pluginConfig.addonDirPath}`));
+  const pluginConfigResult = pluginConfigSchema.safeParse(pluginConfig);
+  if (!pluginConfigResult.success) {
+    errors.push(
+      createError('Invalid plugin config', fromZodError(pluginConfigResult.error).message),
+    );
   } else {
-    const mainfestJsonPath = path.join(pluginConfig.addonDirPath, 'manifest.json');
-    if (!(await exists(mainfestJsonPath))) {
-      errors.push(createError(`Missing manifest.json: ${mainfestJsonPath}`));
+    const { addonDirPath } = pluginConfigResult.data;
+    if (!(await exists(addonDirPath))) {
+      errors.push(createError(`Missing add-on directory: ${addonDirPath}`));
+    } else {
+      const manifestJsonPath = path.join(addonDirPath, 'manifest.json');
+      if (!(await exists(manifestJsonPath))) {
+        errors.push(createError(`Missing manifest.json: ${manifestJsonPath}`));
+      }
     }
   }
 
-  if (env.AMO_API_KEY == null) {
-    errors.push(createError('Missing environment variable: AMO_API_KEY'));
-  }
-  if (env.AMO_API_SECRET == null) {
-    errors.push(createError('Missing environment variable: AMO_API_SECRET'));
+  const envResult = envSchema.safeParse(env);
+  if (!envResult.success) {
+    errors.push(
+      createError('Invalid environment variables', fromZodError(envResult.error).message),
+    );
   }
 
   if (errors.length) {

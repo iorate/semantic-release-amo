@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 import jwt from 'jsonwebtoken';
-import * as S from 'microstruct';
+import { z } from 'zod';
 
 export class UpdateAddonError extends Error {
   constructor(message: string) {
@@ -89,12 +89,12 @@ function throwBadResponse(path: string, response: AxiosResponse): never {
 
 type APIParams = Pick<UpdateAddonParams, 'apiKey' | 'apiSecret' | 'baseURL'>;
 
-async function apiFetch<T>(
+async function apiFetch<T, Schema extends z.ZodType<T>>(
   { apiKey, apiSecret, baseURL }: Readonly<APIParams>,
   method: string,
   path: string,
   body: Readonly<Record<string, unknown>> | FormData | null,
-  validator: S.Struct<T>,
+  schema: Schema,
 ): Promise<T> {
   try {
     const response = await axios({
@@ -105,10 +105,11 @@ async function apiFetch<T>(
       },
       data: body,
     });
-    if (!S.is(response.data, validator)) {
+    const result = schema.safeParse(response.data);
+    if (!result.success) {
       throwBadResponse(path, response);
     }
-    return response.data;
+    return result.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response) {
       throwBadResponse(path, error.response);
@@ -118,14 +119,14 @@ async function apiFetch<T>(
   }
 }
 
-const uploadStruct = S.type({
-  uuid: S.string(),
-  processed: S.boolean(),
-  valid: S.boolean(),
-  validation: S.nullable(S.record(S.string(), S.unknown())),
+const uploadSchema = z.object({
+  uuid: z.string(),
+  processed: z.boolean(),
+  valid: z.boolean(),
+  validation: z.record(z.string(), z.unknown()).nullable(),
 });
 
-type Upload = S.Infer<typeof uploadStruct>;
+type Upload = z.infer<typeof uploadSchema>;
 
 function createUpload(
   apiParams: Readonly<APIParams>,
@@ -134,16 +135,16 @@ function createUpload(
   const formData = new FormData();
   formData.append('upload', upload);
   formData.append('channel', channel);
-  return apiFetch(apiParams, 'POST', 'upload/', formData, uploadStruct);
+  return apiFetch(apiParams, 'POST', 'upload/', formData, uploadSchema);
 }
 
 function getUpload(apiParams: Readonly<APIParams>, uuid: string): Promise<Upload> {
-  return apiFetch(apiParams, 'GET', `upload/${uuid}/`, null, uploadStruct);
+  return apiFetch(apiParams, 'GET', `upload/${uuid}/`, null, uploadSchema);
 }
 
-const versionStruct = S.type({ id: S.number() });
+const versionSchema = z.object({ id: z.number() });
 
-type Version = S.Infer<typeof versionStruct>;
+type Version = z.infer<typeof versionSchema>;
 
 function createVersion(
   apiParams: Readonly<APIParams>,
@@ -155,7 +156,7 @@ function createVersion(
     release_notes?: Readonly<Record<string, string>>;
   }>,
 ): Promise<Version> {
-  return apiFetch(apiParams, 'POST', `addon/${addonId}/versions/`, body, versionStruct);
+  return apiFetch(apiParams, 'POST', `addon/${addonId}/versions/`, body, versionSchema);
 }
 
 function patchVersion(
@@ -166,7 +167,7 @@ function patchVersion(
 ): Promise<Version> {
   const formData = new FormData();
   formData.append('source', source);
-  return apiFetch(apiParams, 'PATCH', `addon/${addonId}/versions/${id}/`, formData, versionStruct);
+  return apiFetch(apiParams, 'PATCH', `addon/${addonId}/versions/${id}/`, formData, versionSchema);
 }
 
 function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promise<void> {
@@ -176,7 +177,7 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
       if (intervalId) {
         clearTimeout(intervalId);
       }
-      reject(new UpdateAddonError('Validation Timeout'));
+      reject(new UpdateAddonError('Validation timeout'));
     }, 300000); // 5 minutes
     const poll = () =>
       void getUpload(apiParams, uuid)
@@ -186,7 +187,7 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
             if (valid) {
               resolve();
             } else {
-              reject(new UpdateAddonError(`Validation Error: ${JSON.stringify(validation)}`));
+              reject(new UpdateAddonError(`Validation error: ${JSON.stringify(validation)}`));
             }
           } else {
             intervalId = setTimeout(poll, 1000); // 1 second
