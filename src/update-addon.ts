@@ -1,11 +1,12 @@
 import fs from 'node:fs';
+import util from 'node:util';
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 export class UpdateAddonError extends Error {
-  constructor(message: string, readonly details?: string) {
+  constructor(message: string, readonly code?: string, readonly details?: string) {
     super(message);
     this.name = 'UpdateAddonError';
   }
@@ -70,6 +71,10 @@ export async function updateAddon({
   }
 }
 
+function stringify(value: unknown): string {
+  return util.inspect(value, { breakLength: Infinity, depth: Infinity });
+}
+
 function jwtSign(key: string, secret: string): string {
   const issuedAt = Math.floor(Date.now() / 1000);
   const payload = {
@@ -81,10 +86,11 @@ function jwtSign(key: string, secret: string): string {
   return jwt.sign(payload, secret, { algorithm: 'HS256' });
 }
 
-function throwBadResponse(path: string, response: AxiosResponse): never {
+function throwBadResponse(url: string, response: AxiosResponse): never {
   throw new UpdateAddonError(
-    `Bad response from ${path} with status ${response.status}`,
-    JSON.stringify(response.data),
+    `A bad response was received from ${url} with status ${response.status}.`,
+    'EBADRESPONSE',
+    stringify(response.data),
   );
 }
 
@@ -97,9 +103,10 @@ async function apiFetch<T, Schema extends z.ZodType<T>>(
   body: Readonly<Record<string, unknown>> | FormData | null,
   schema: Schema,
 ): Promise<T> {
+  const url = new URL(`/api/v5/addons/${path}`, baseURL).toString();
   try {
     const response = await axios({
-      url: new URL(`/api/v5/addons/${path}`, baseURL).toString(),
+      url,
       method,
       headers: {
         Authorization: `JWT ${jwtSign(apiKey, apiSecret)}`,
@@ -108,12 +115,12 @@ async function apiFetch<T, Schema extends z.ZodType<T>>(
     });
     const result = schema.safeParse(response.data);
     if (!result.success) {
-      throwBadResponse(path, response);
+      throwBadResponse(url, response);
     }
     return result.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response) {
-      throwBadResponse(path, error.response);
+      throwBadResponse(url, error.response);
     } else {
       throw error;
     }
@@ -178,7 +185,7 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
       if (intervalId) {
         clearTimeout(intervalId);
       }
-      reject(new UpdateAddonError('Validation timeout'));
+      reject(new UpdateAddonError('Validation timed out.', 'EVALIDATIONTIMEOUT'));
     }, 300000); // 5 minutes
     const poll = () =>
       void getUpload(apiParams, uuid)
@@ -188,7 +195,13 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
             if (valid) {
               resolve();
             } else {
-              reject(new UpdateAddonError('Validation error', JSON.stringify(validation)));
+              reject(
+                new UpdateAddonError(
+                  'Validation failed.',
+                  'EVALIDATIONFAILURE',
+                  stringify(validation),
+                ),
+              );
             }
           } else {
             intervalId = setTimeout(poll, 1000); // 1 second

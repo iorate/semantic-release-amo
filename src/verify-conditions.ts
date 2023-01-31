@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import SemanticReleaseError from '@semantic-release/error';
 import type { Context } from 'semantic-release';
 import { fromZodError } from 'zod-validation-error';
-import { createError, envSchema, pluginConfigSchema } from './common';
+import { envSchema, pluginConfigSchema } from './common';
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -28,16 +29,30 @@ export async function verifyConditions(
   const pluginConfigResult = pluginConfigSchema.safeParse(pluginConfig);
   if (!pluginConfigResult.success) {
     errors.push(
-      createError('Invalid plugin config', fromZodError(pluginConfigResult.error).message),
+      new SemanticReleaseError(
+        'The plugin configuration is invalid.',
+        'EINVALIDPLUGINCONFIG',
+        fromZodError(pluginConfigResult.error).message,
+      ),
     );
   } else {
     const { addonDirPath } = pluginConfigResult.data;
     if (!(await exists(addonDirPath))) {
-      errors.push(createError(`Missing add-on directory: ${addonDirPath}`));
+      errors.push(
+        new SemanticReleaseError(
+          `The add-on directory is not found at ${addonDirPath}.`,
+          'EADDONDIRNOTFOUND',
+        ),
+      );
     } else {
       const manifestJsonPath = path.join(addonDirPath, 'manifest.json');
       if (!(await exists(manifestJsonPath))) {
-        errors.push(createError(`Missing manifest.json: ${manifestJsonPath}`));
+        errors.push(
+          new SemanticReleaseError(
+            `manifest.json is not found at ${manifestJsonPath}.`,
+            'EMANIFESTJSONNOTFOUND',
+          ),
+        );
       }
     }
   }
@@ -45,7 +60,11 @@ export async function verifyConditions(
   const envResult = envSchema.safeParse(env);
   if (!envResult.success) {
     errors.push(
-      createError('Invalid environment variables', fromZodError(envResult.error).message),
+      new SemanticReleaseError(
+        'The environment variables are invalid.',
+        'EINVALIDENV',
+        fromZodError(envResult.error).message,
+      ),
     );
   }
 

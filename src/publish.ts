@@ -1,5 +1,6 @@
+import SemanticReleaseError from '@semantic-release/error';
 import { marked } from 'marked';
-import { FullContext, PluginConfig, applyContext, applyDefaults, createError } from './common';
+import { FullContext, PluginConfig, applyContext, applyDefaults } from './common';
 import { UpdateAddonError, updateAddon } from './update-addon';
 
 function parseReleaseNotes(releaseNotes: string): string {
@@ -51,7 +52,7 @@ export async function publish(
     });
   } catch (error: unknown) {
     if (error instanceof UpdateAddonError) {
-      throw createError(error.message, error.details);
+      throw new SemanticReleaseError(error.message, error.code, error.details);
     } else {
       throw error;
     }

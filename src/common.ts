@@ -1,11 +1,6 @@
-import SemanticReleaseError from '@semantic-release/error';
 import template from 'lodash.template';
 import type { Context } from 'semantic-release';
 import { z } from 'zod';
-
-export function createError(message: string, details?: string): SemanticReleaseError {
-  return new SemanticReleaseError(message, '\u{1f98a}', details);
-}
 
 export const pluginConfigSchema = z.object({
   addonId: z.string(),

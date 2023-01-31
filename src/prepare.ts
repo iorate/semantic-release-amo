@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import SemanticReleaseError from '@semantic-release/error';
 import zipDir from 'zip-dir';
 import { z } from 'zod';
-import { FullContext, PluginConfig, applyContext, applyDefaults, createError } from './common';
+import { FullContext, PluginConfig, applyContext, applyDefaults } from './common';
 
 export async function prepare(
   pluginConfig: Readonly<PluginConfig>,
@@ -25,7 +26,10 @@ export async function prepare(
   try {
     manifest = z.record(z.string(), z.unknown()).parse(JSON.parse(manifestJson));
   } catch {
-    throw createError(`Invalid manifest.json: ${manifestJsonPath}`);
+    throw new SemanticReleaseError(
+      `An invalid manifest was read from ${manifestJsonPath}.`,
+      'EINVALIDMANIFEST',
+    );
   }
   manifest.version = nextRelease.version;
   await fs.writeFile(manifestJsonPath, JSON.stringify(manifest, null, 2), 'utf8');
