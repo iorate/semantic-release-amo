@@ -1,3 +1,4 @@
+/.vscode
 /.yarn/*
 !/.yarn/plugins
 !/.yarn/releases
