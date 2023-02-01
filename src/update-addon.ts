@@ -32,19 +32,20 @@ export type UpdateAddonParams = {
   }>;
 };
 
-export async function updateAddon({
-  apiKey,
-  apiSecret,
-  baseURL = 'https://addons.mozilla.org/',
-  addonId,
-  addonZipPath,
-  channel = 'listed',
-  approvalNotes = null,
-  compatibility = ['firefox'],
-  releaseNotes = null,
-  sourceZipPath = null,
-  logger = console,
-}: Readonly<UpdateAddonParams>): Promise<void> {
+export async function updateAddon(params: Readonly<UpdateAddonParams>): Promise<void> {
+  const {
+    apiKey,
+    apiSecret,
+    baseURL = 'https://addons.mozilla.org/',
+    addonId,
+    addonZipPath,
+    channel = 'listed',
+    approvalNotes = null,
+    compatibility = ['firefox'],
+    releaseNotes = null,
+    sourceZipPath = null,
+    logger = console,
+  } = params;
   const apiParams = { apiKey, apiSecret, baseURL };
 
   logger.log('Uploading the add-on...');
