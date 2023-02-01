@@ -48,7 +48,8 @@
     ],
     "parserOptions": {
       "project": "./tsconfig.json"
-    }
+    },
+    "root": true
   },
   "exports": {
     ".": "./dist/index.js",
