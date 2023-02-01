@@ -68,7 +68,7 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "packageManager": "yarn@3.3.1",
+  "packageManager": "yarn@3.4.0",
   "peerDependencies": {
     "semantic-release": ">=18"
   },
