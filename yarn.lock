@@ -5030,7 +5030,7 @@ __metadata:
     zod: ^3.20.2
     zod-validation-error: ^0.3.0
   peerDependencies:
-    semantic-release: "*"
+    semantic-release: ">=18"
   languageName: unknown
   linkType: soft
 
