@@ -1,4 +1,5 @@
-import fs from 'node:fs';
+import { createReadStream } from 'node:fs';
+import fs from 'node:fs/promises';
 import util from 'node:util';
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
@@ -47,10 +48,7 @@ export async function updateAddon({
   const apiParams = { apiKey, apiSecret, baseURL };
 
   logger.log('Uploading the add-on...');
-  const { uuid: uploadId } = await createUpload(apiParams, {
-    upload: fs.createReadStream(addonZipPath),
-    channel,
-  });
+  const { uuid: uploadId } = await createUpload(apiParams, { uploadPath: addonZipPath, channel });
 
   logger.log('Waiting for validation...');
   await waitForValidation(apiParams, uploadId);
@@ -65,9 +63,7 @@ export async function updateAddon({
 
   if (sourceZipPath != null) {
     logger.log('Uploading the source code...');
-    await patchVersion(apiParams, addonId, versionId, {
-      source: fs.createReadStream(sourceZipPath),
-    });
+    await patchVersion(apiParams, addonId, versionId, { sourcePath: sourceZipPath });
   }
 }
 
@@ -136,12 +132,14 @@ const uploadSchema = z.object({
 
 type Upload = z.infer<typeof uploadSchema>;
 
-function createUpload(
+async function createUpload(
   apiParams: Readonly<APIParams>,
-  { upload, channel }: Readonly<{ upload: fs.ReadStream; channel: Channel }>,
+  { uploadPath, channel }: Readonly<{ uploadPath: string; channel: Channel }>,
 ): Promise<Upload> {
   const formData = new FormData();
-  formData.append('upload', upload);
+  formData.append('upload', createReadStream(uploadPath), {
+    knownLength: (await fs.stat(uploadPath)).size,
+  });
   formData.append('channel', channel);
   return apiFetch(apiParams, 'POST', 'upload/', formData, uploadSchema);
 }
@@ -167,14 +165,16 @@ function createVersion(
   return apiFetch(apiParams, 'POST', `addon/${addonId}/versions/`, body, versionSchema);
 }
 
-function patchVersion(
+async function patchVersion(
   apiParams: Readonly<APIParams>,
   addonId: string,
   id: number,
-  { source }: Readonly<{ source: fs.ReadStream }>,
+  { sourcePath }: Readonly<{ sourcePath: string }>,
 ): Promise<Version> {
   const formData = new FormData();
-  formData.append('source', source);
+  formData.append('source', createReadStream(sourcePath), {
+    knownLength: (await fs.stat(sourcePath)).size,
+  });
   return apiFetch(apiParams, 'PATCH', `addon/${addonId}/versions/${id}/`, formData, versionSchema);
 }
 
