@@ -20,13 +20,14 @@ export async function publish(
     addonId,
     addonZipPath: addonZipPathTemplate,
     channel,
-    approvalNotes,
+    approvalNotes: approvalNotesTemplate,
     compatibility,
     submitReleaseNotes,
     submitSource,
     sourceZipPath: sourceZipPathTemplate,
   } = applyDefaults(pluginConfig);
   const addonZipPath = applyContext(addonZipPathTemplate, context);
+  const approvalNotes = approvalNotesTemplate && applyContext(approvalNotesTemplate, context);
   const sourceZipPath = applyContext(sourceZipPathTemplate, context);
   const { env, logger, nextRelease } = context;
   const baseURL = env.AMO_BASE_URL ?? 'https://addons.mozilla.org/';
