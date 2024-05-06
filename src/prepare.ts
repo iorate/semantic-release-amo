@@ -32,7 +32,7 @@ export async function prepare(
     );
   }
   manifest.version = nextRelease.version;
-  await fs.writeFile(manifestJsonPath, JSON.stringify(manifest, null, 2), 'utf8');
+  await fs.writeFile(manifestJsonPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 
   logger.log('Archiving the add-on...');
   await fs.mkdir(path.dirname(addonZipPath), { recursive: true });
