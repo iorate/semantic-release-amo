@@ -3,7 +3,7 @@ import path from "node:path";
 import SemanticReleaseError from "@semantic-release/error";
 import type { VerifyReleaseContext } from "semantic-release";
 import { fromZodError } from "zod-validation-error";
-import { envSchema, pluginConfigSchema } from "./common";
+import { envSchema, pluginConfigSchema } from "./common.js";
 
 async function exists(path: string): Promise<boolean> {
   try {

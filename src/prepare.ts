@@ -8,7 +8,7 @@ import {
   type PluginConfig,
   applyContext,
   applyDefaults,
-} from "./common";
+} from "./common.js";
 
 export async function prepare(
   pluginConfig: Readonly<PluginConfig>,

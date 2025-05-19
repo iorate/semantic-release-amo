@@ -5,8 +5,8 @@ import {
   type PluginConfig,
   applyContext,
   applyDefaults,
-} from "./common";
-import { UpdateAddonError, updateAddon } from "./update-addon";
+} from "./common.js";
+import { UpdateAddonError, updateAddon } from "./update-addon.js";
 
 function parseReleaseNotes(releaseNotes: string): string {
   marked.use({

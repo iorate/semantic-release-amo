@@ -18,15 +18,10 @@
   },
   "license": "MIT",
   "author": "iorate",
-  "exports": {
-    ".": "./dist/index.js",
-    "./update-addon": "./dist/update-addon.js"
-  },
-  "main": "./dist/index.js",
+  "type": "module",
+  "exports": "./dist/index.js",
   "files": [
-    "./dist/*.js",
-    "./dist/update-addon.d.ts",
-    "./update-addon.d.ts"
+    "./dist/*.js"
   ],
   "scripts": {
     "build": "tsc",
@@ -70,7 +65,7 @@
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "semantic-release": ">=18"
+    "semantic-release": ">=20"
   },
   "packageManager": "pnpm@10.11.0"
 }
