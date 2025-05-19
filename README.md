@@ -63,18 +63,18 @@ This plugin makes it possible to submit source code by using
 ### updateAddon
 
 ```typescript
-import { updateAddon } from 'semantic-release-amo/update-addon';
+import { updateAddon } from "semantic-release-amo/update-addon";
 
 await updateAddon({
-  apiKey: '...',
-  apiSecret: '...',
-  baseURL: 'https://addons.mozilla.org/', // optional, defaults to 'https://addons.mozilla.org/'
-  addonId: '...',
+  apiKey: "...",
+  apiSecret: "...",
+  baseURL: "https://addons.mozilla.org/", // optional, defaults to 'https://addons.mozilla.org/'
+  addonId: "...",
   addonZipPath: await generateAddonZip(),
-  channel: 'listed', // optional, defaults to 'listed'
-  approvalNotes: '...', // optional
-  compatibility: ['firefox'], // optional, defaults to ['firefox']
-  releaseNotes: '...', // optional
+  channel: "listed", // optional, defaults to 'listed'
+  approvalNotes: "...", // optional
+  compatibility: ["firefox"], // optional, defaults to ['firefox']
+  releaseNotes: "...", // optional
   sourceZipPath: await generateSourceZip(), // optional
   logger: console, // optional, defaults to console
 });

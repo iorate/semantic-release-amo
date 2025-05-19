@@ -1,3 +1,16 @@
-/.vscode
-/.yarn
-/dist
+# Formatted by Biome
+*.js
+*.cjs
+*.mjs
+*.ts
+*.cts
+*.mts
+*.jsx
+*.tsx
+*.json
+*.jsonc
+*.css
+
+# pnpm files
+pnpm-lock.yaml
+pnpm-workspace.yaml

@@ -1,14 +1,14 @@
-import template from 'lodash.template';
-import type { Context } from 'semantic-release';
-import { z } from 'zod';
+import template from "lodash.template";
+import type { Context } from "semantic-release";
+import { z } from "zod";
 
 export const pluginConfigSchema = z.object({
   addonId: z.string(),
   addonDirPath: z.string(),
   addonZipPath: z.string().optional(),
-  channel: z.enum(['unlisted', 'listed']).optional(),
+  channel: z.enum(["unlisted", "listed"]).optional(),
   approvalNotes: z.string().min(1).nullable().optional(),
-  compatibility: z.enum(['android', 'firefox']).array().min(1).optional(),
+  compatibility: z.enum(["android", "firefox"]).array().min(1).optional(),
   submitReleaseNotes: z.boolean().optional(),
   submitSource: z.boolean().optional(),
   sourceZipPath: z.string().optional(),
@@ -16,15 +16,17 @@ export const pluginConfigSchema = z.object({
 
 export type PluginConfig = NoUndefined<z.infer<typeof pluginConfigSchema>>;
 
-export function applyDefaults(pluginConfig: Readonly<PluginConfig>): Required<PluginConfig> {
+export function applyDefaults(
+  pluginConfig: Readonly<PluginConfig>,
+): Required<PluginConfig> {
   return {
-    addonZipPath: './semantic-release-amo/${nextRelease.version}.zip',
-    channel: 'listed',
+    addonZipPath: "./semantic-release-amo/${nextRelease.version}.zip",
+    channel: "listed",
     approvalNotes: null,
-    compatibility: ['firefox'],
+    compatibility: ["firefox"],
     submitReleaseNotes: false,
     submitSource: false,
-    sourceZipPath: './semantic-release-amo/${nextRelease.version}-src.zip',
+    sourceZipPath: "./semantic-release-amo/${nextRelease.version}-src.zip",
     ...pluginConfig,
   };
 }

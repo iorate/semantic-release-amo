@@ -1,6 +1,5 @@
-/.vscode
-/.yarn/*
-!/.yarn/plugins
-!/.yarn/releases
-/dist
-/node_modules
+# Dependency directories
+node_modules
+
+# Build output
+dist

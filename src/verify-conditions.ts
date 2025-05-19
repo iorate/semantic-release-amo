@@ -1,20 +1,22 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import SemanticReleaseError from '@semantic-release/error';
-import type { Context } from 'semantic-release';
-import { fromZodError } from 'zod-validation-error';
-import { envSchema, pluginConfigSchema } from './common';
+import fs from "node:fs/promises";
+import path from "node:path";
+import SemanticReleaseError from "@semantic-release/error";
+import type { Context } from "semantic-release";
+import { fromZodError } from "zod-validation-error";
+import { envSchema, pluginConfigSchema } from "./common";
 
 async function exists(path: string): Promise<boolean> {
   try {
     await fs.access(path);
     return true;
   } catch (error: unknown) {
-    if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if (
+      error instanceof Error &&
+      (error as NodeJS.ErrnoException).code === "ENOENT"
+    ) {
       return false;
-    } else {
-      throw error;
     }
+    throw error;
   }
 }
 
@@ -30,8 +32,8 @@ export async function verifyConditions(
   if (!pluginConfigResult.success) {
     errors.push(
       new SemanticReleaseError(
-        'The plugin configuration is invalid.',
-        'EINVALIDPLUGINCONFIG',
+        "The plugin configuration is invalid.",
+        "EINVALIDPLUGINCONFIG",
         fromZodError(pluginConfigResult.error).message,
       ),
     );
@@ -41,16 +43,16 @@ export async function verifyConditions(
       errors.push(
         new SemanticReleaseError(
           `The add-on directory is not found at ${addonDirPath}.`,
-          'EADDONDIRNOTFOUND',
+          "EADDONDIRNOTFOUND",
         ),
       );
     } else {
-      const manifestJsonPath = path.join(addonDirPath, 'manifest.json');
+      const manifestJsonPath = path.join(addonDirPath, "manifest.json");
       if (!(await exists(manifestJsonPath))) {
         errors.push(
           new SemanticReleaseError(
             `manifest.json is not found at ${manifestJsonPath}.`,
-            'EMANIFESTJSONNOTFOUND',
+            "EMANIFESTJSONNOTFOUND",
           ),
         );
       }
@@ -61,15 +63,15 @@ export async function verifyConditions(
   if (!envResult.success) {
     errors.push(
       new SemanticReleaseError(
-        'The environment variables are invalid.',
-        'EINVALIDENV',
+        "The environment variables are invalid.",
+        "EINVALIDENV",
         fromZodError(envResult.error).message,
       ),
     );
   }
 
   if (errors.length) {
-    const { default: _AggregateError } = await import('aggregate-error');
+    const { default: _AggregateError } = await import("aggregate-error");
     class AggregateError extends _AggregateError {
       constructor(errors: readonly Error[]) {
         super(errors);

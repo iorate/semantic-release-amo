@@ -1,1 +1,1 @@
-export * from './dist/update-addon';
+export * from "./dist/update-addon";

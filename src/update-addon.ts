@@ -1,20 +1,24 @@
-import { createReadStream } from 'node:fs';
-import fs from 'node:fs/promises';
-import util from 'node:util';
-import axios, { AxiosResponse } from 'axios';
-import FormData from 'form-data';
-import jwt from 'jsonwebtoken';
-import { z } from 'zod';
+import { createReadStream } from "node:fs";
+import fs from "node:fs/promises";
+import util from "node:util";
+import axios, { type AxiosResponse } from "axios";
+import FormData from "form-data";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
 
 export class UpdateAddonError extends Error {
-  constructor(message: string, readonly code?: string, readonly details?: string) {
+  constructor(
+    message: string,
+    readonly code?: string,
+    readonly details?: string,
+  ) {
     super(message);
-    this.name = 'UpdateAddonError';
+    this.name = "UpdateAddonError";
   }
 }
 
-export type Channel = 'unlisted' | 'listed';
-export type Application = 'android' | 'firefox';
+export type Channel = "unlisted" | "listed";
+export type Application = "android" | "firefox";
 
 export type UpdateAddonParams = {
   apiKey: string;
@@ -32,44 +36,56 @@ export type UpdateAddonParams = {
   }>;
 };
 
-export async function updateAddon(params: Readonly<UpdateAddonParams>): Promise<void> {
+export async function updateAddon(
+  params: Readonly<UpdateAddonParams>,
+): Promise<void> {
   const {
     apiKey,
     apiSecret,
-    baseURL = 'https://addons.mozilla.org/',
+    baseURL = "https://addons.mozilla.org/",
     addonId,
     addonZipPath,
-    channel = 'listed',
+    channel = "listed",
     approvalNotes = null,
-    compatibility = ['firefox'],
+    compatibility = ["firefox"],
     releaseNotes = null,
     sourceZipPath = null,
     logger = console,
   } = params;
   const apiParams = { apiKey, apiSecret, baseURL };
 
-  logger.log('Uploading the add-on...');
-  const { uuid: uploadId } = await createUpload(apiParams, { uploadPath: addonZipPath, channel });
+  logger.log("Uploading the add-on...");
+  const { uuid: uploadId } = await createUpload(apiParams, {
+    uploadPath: addonZipPath,
+    channel,
+  });
 
-  logger.log('Waiting for validation...');
+  logger.log("Waiting for validation...");
   await waitForValidation(apiParams, uploadId);
 
-  logger.log('Creating a version...');
+  logger.log("Creating a version...");
   const { id: versionId } = await createVersion(apiParams, addonId, {
     upload: uploadId,
     ...(approvalNotes != null ? { approval_notes: approvalNotes } : {}),
     compatibility,
-    ...(releaseNotes != null ? { release_notes: { 'en-US': releaseNotes } } : {}),
+    ...(releaseNotes != null
+      ? { release_notes: { "en-US": releaseNotes } }
+      : {}),
   });
 
   if (sourceZipPath != null) {
-    logger.log('Uploading the source code...');
-    await patchVersion(apiParams, addonId, versionId, { sourcePath: sourceZipPath });
+    logger.log("Uploading the source code...");
+    await patchVersion(apiParams, addonId, versionId, {
+      sourcePath: sourceZipPath,
+    });
   }
 }
 
 function stringify(value: unknown): string {
-  return util.inspect(value, { breakLength: Infinity, depth: Infinity });
+  return util.inspect(value, {
+    breakLength: Number.POSITIVE_INFINITY,
+    depth: Number.POSITIVE_INFINITY,
+  });
 }
 
 function jwtSign(key: string, secret: string): string {
@@ -80,18 +96,18 @@ function jwtSign(key: string, secret: string): string {
     iat: issuedAt,
     exp: issuedAt + 300, // 5 minutes
   };
-  return jwt.sign(payload, secret, { algorithm: 'HS256' });
+  return jwt.sign(payload, secret, { algorithm: "HS256" });
 }
 
 function throwBadResponse(url: string, response: AxiosResponse): never {
   throw new UpdateAddonError(
     `A bad response was received from ${url} with status ${response.status}.`,
-    'EBADRESPONSE',
+    "EBADRESPONSE",
     stringify(response.data),
   );
 }
 
-type APIParams = Pick<UpdateAddonParams, 'apiKey' | 'apiSecret' | 'baseURL'>;
+type APIParams = Pick<UpdateAddonParams, "apiKey" | "apiSecret" | "baseURL">;
 
 async function apiFetch<T, Schema extends z.ZodType<T>>(
   { apiKey, apiSecret, baseURL }: Readonly<APIParams>,
@@ -138,15 +154,18 @@ async function createUpload(
   { uploadPath, channel }: Readonly<{ uploadPath: string; channel: Channel }>,
 ): Promise<Upload> {
   const formData = new FormData();
-  formData.append('upload', createReadStream(uploadPath), {
+  formData.append("upload", createReadStream(uploadPath), {
     knownLength: (await fs.stat(uploadPath)).size,
   });
-  formData.append('channel', channel);
-  return apiFetch(apiParams, 'POST', 'upload/', formData, uploadSchema);
+  formData.append("channel", channel);
+  return apiFetch(apiParams, "POST", "upload/", formData, uploadSchema);
 }
 
-function getUpload(apiParams: Readonly<APIParams>, uuid: string): Promise<Upload> {
-  return apiFetch(apiParams, 'GET', `upload/${uuid}/`, null, uploadSchema);
+function getUpload(
+  apiParams: Readonly<APIParams>,
+  uuid: string,
+): Promise<Upload> {
+  return apiFetch(apiParams, "GET", `upload/${uuid}/`, null, uploadSchema);
 }
 
 const versionSchema = z.object({ id: z.number() });
@@ -163,7 +182,13 @@ function createVersion(
     release_notes?: Readonly<Record<string, string>>;
   }>,
 ): Promise<Version> {
-  return apiFetch(apiParams, 'POST', `addon/${addonId}/versions/`, body, versionSchema);
+  return apiFetch(
+    apiParams,
+    "POST",
+    `addon/${addonId}/versions/`,
+    body,
+    versionSchema,
+  );
 }
 
 async function patchVersion(
@@ -173,20 +198,31 @@ async function patchVersion(
   { sourcePath }: Readonly<{ sourcePath: string }>,
 ): Promise<Version> {
   const formData = new FormData();
-  formData.append('source', createReadStream(sourcePath), {
+  formData.append("source", createReadStream(sourcePath), {
     knownLength: (await fs.stat(sourcePath)).size,
   });
-  return apiFetch(apiParams, 'PATCH', `addon/${addonId}/versions/${id}/`, formData, versionSchema);
+  return apiFetch(
+    apiParams,
+    "PATCH",
+    `addon/${addonId}/versions/${id}/`,
+    formData,
+    versionSchema,
+  );
 }
 
-function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promise<void> {
+function waitForValidation(
+  apiParams: Readonly<APIParams>,
+  uuid: string,
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let intervalId: NodeJS.Timeout | null = null;
     const timeoutId = setTimeout(() => {
       if (intervalId) {
         clearTimeout(intervalId);
       }
-      reject(new UpdateAddonError('Validation timed out.', 'EVALIDATIONTIMEOUT'));
+      reject(
+        new UpdateAddonError("Validation timed out.", "EVALIDATIONTIMEOUT"),
+      );
     }, 300000); // 5 minutes
     const poll = () =>
       void getUpload(apiParams, uuid)
@@ -198,8 +234,8 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
             } else {
               reject(
                 new UpdateAddonError(
-                  'Validation failed.',
-                  'EVALIDATIONFAILURE',
+                  "Validation failed.",
+                  "EVALIDATIONFAILURE",
                   stringify(validation),
                 ),
               );
@@ -208,7 +244,7 @@ function waitForValidation(apiParams: Readonly<APIParams>, uuid: string): Promis
             intervalId = setTimeout(poll, 1000); // 1 second
           }
         })
-        .catch(error => reject(error));
+        .catch((error) => reject(error));
     poll();
   });
 }
