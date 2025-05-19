@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import SemanticReleaseError from "@semantic-release/error";
+import { type } from "arktype";
 import type { VerifyReleaseContext } from "semantic-release";
-import { fromZodError } from "zod-validation-error";
-import { envSchema, pluginConfigSchema } from "./common.js";
+import { Env, PluginConfig } from "./common.js";
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -21,24 +21,22 @@ async function exists(path: string): Promise<boolean> {
 }
 
 export async function verifyConditions(
-  pluginConfig: Readonly<Record<string, unknown>>,
+  pluginConfigRaw: Readonly<Record<string, unknown>>,
   context: Readonly<VerifyReleaseContext>,
 ): Promise<void> {
-  const { env } = context;
-
   const errors = [];
 
-  const pluginConfigResult = pluginConfigSchema.safeParse(pluginConfig);
-  if (!pluginConfigResult.success) {
+  const pluginConfig = PluginConfig(pluginConfigRaw);
+  if (pluginConfig instanceof type.errors) {
     errors.push(
       new SemanticReleaseError(
         "The plugin configuration is invalid.",
         "EINVALIDPLUGINCONFIG",
-        fromZodError(pluginConfigResult.error).message,
+        pluginConfig.summary,
       ),
     );
   } else {
-    const { addonDirPath } = pluginConfigResult.data;
+    const { addonDirPath } = pluginConfig;
     if (!(await exists(addonDirPath))) {
       errors.push(
         new SemanticReleaseError(
@@ -59,13 +57,13 @@ export async function verifyConditions(
     }
   }
 
-  const envResult = envSchema.safeParse(env);
-  if (!envResult.success) {
+  const env = Env(context.env);
+  if (env instanceof type.errors) {
     errors.push(
       new SemanticReleaseError(
         "The environment variables are invalid.",
         "EINVALIDENV",
-        fromZodError(envResult.error).message,
+        env.summary,
       ),
     );
   }

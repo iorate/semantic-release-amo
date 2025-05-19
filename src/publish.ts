@@ -1,17 +1,18 @@
-import SemanticReleaseError from "@semantic-release/error";
 import { marked } from "marked";
 import {
-  type FullContext,
   type PluginConfig,
+  type PublishContext,
   applyContext,
   applyDefaults,
 } from "./common.js";
-import { UpdateAddonError, updateAddon } from "./update-addon.js";
+import { updateAddon } from "./update-addon.js";
 
 function parseReleaseNotes(releaseNotes: string): string {
   marked.use({
     renderer: {
-      heading: (text) => `\n<b>${text}</b>\n`,
+      heading({ tokens }) {
+        return `\n<b>${this.parser.parseInline(tokens)}</b>\n`;
+      },
     },
   });
   return marked.parse(releaseNotes, { async: false }).trim();
@@ -19,7 +20,7 @@ function parseReleaseNotes(releaseNotes: string): string {
 
 export async function publish(
   pluginConfig: Readonly<PluginConfig>,
-  context: Readonly<FullContext>,
+  context: Readonly<PublishContext>,
 ): Promise<{ name: string; url: string }> {
   const {
     addonId,
@@ -35,8 +36,15 @@ export async function publish(
   const approvalNotes =
     approvalNotesTemplate && applyContext(approvalNotesTemplate, context);
   const sourceZipPath = applyContext(sourceZipPathTemplate, context);
-  const { env, logger, nextRelease } = context;
-  const baseURL = env.AMO_BASE_URL ?? "https://addons.mozilla.org/";
+  const {
+    env: {
+      AMO_API_KEY: apiKey,
+      AMO_API_SECRET: apiSecret,
+      AMO_BASE_URL: baseURL = "https://addons.mozilla.org/",
+    },
+    logger,
+    nextRelease,
+  } = context;
 
   if (submitReleaseNotes && !nextRelease.notes) {
     logger.warn(
@@ -44,29 +52,22 @@ export async function publish(
     );
   }
 
-  try {
-    await updateAddon({
-      apiKey: env.AMO_API_KEY,
-      apiSecret: env.AMO_API_SECRET,
-      baseURL,
-      addonId,
-      addonZipPath,
-      channel,
-      approvalNotes: approvalNotes || null,
-      compatibility,
-      releaseNotes:
-        submitReleaseNotes && nextRelease.notes
-          ? parseReleaseNotes(nextRelease.notes)
-          : null,
-      sourceZipPath: submitSource ? sourceZipPath : null,
-      logger,
-    });
-  } catch (error: unknown) {
-    if (error instanceof UpdateAddonError) {
-      throw new SemanticReleaseError(error.message, error.code, error.details);
-    }
-    throw error;
-  }
+  await updateAddon({
+    apiKey,
+    apiSecret,
+    baseURL,
+    addonId,
+    addonZipPath,
+    channel,
+    approvalNotes,
+    compatibility,
+    releaseNotes:
+      submitReleaseNotes && nextRelease.notes
+        ? parseReleaseNotes(nextRelease.notes)
+        : null,
+    sourceZipPath: submitSource ? sourceZipPath : null,
+    logger,
+  });
 
   return {
     name: "Firefox Add-ons",

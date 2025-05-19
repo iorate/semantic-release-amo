@@ -1,20 +1,23 @@
+import { type } from "arktype";
 import { template } from "es-toolkit/compat";
-import type { VerifyReleaseContext } from "semantic-release";
-import { z } from "zod";
+import type {
+  PrepareContext as _PrepareContext,
+  PublishContext as _PublishContext,
+} from "semantic-release";
 
-export const pluginConfigSchema = z.object({
-  addonId: z.string(),
-  addonDirPath: z.string(),
-  addonZipPath: z.string().optional(),
-  channel: z.enum(["unlisted", "listed"]).optional(),
-  approvalNotes: z.string().min(1).nullable().optional(),
-  compatibility: z.enum(["android", "firefox"]).array().min(1).optional(),
-  submitReleaseNotes: z.boolean().optional(),
-  submitSource: z.boolean().optional(),
-  sourceZipPath: z.string().optional(),
+export const PluginConfig = type({
+  addonId: "string",
+  addonDirPath: "string",
+  "addonZipPath?": "string",
+  "channel?": "'unlisted' | 'listed'",
+  "approvalNotes?": "string > 0 | null",
+  "compatibility?": "('android' | 'firefox')[] > 0",
+  "submitReleaseNotes?": "boolean",
+  "submitSource?": "boolean",
+  "sourceZipPath?": "string",
 });
 
-export type PluginConfig = NoUndefined<z.infer<typeof pluginConfigSchema>>;
+export type PluginConfig = typeof PluginConfig.infer;
 
 export function applyDefaults(
   pluginConfig: Readonly<PluginConfig>,
@@ -31,25 +34,26 @@ export function applyDefaults(
   };
 }
 
-export const envSchema = z.object({
-  AMO_API_KEY: z.string(),
-  AMO_API_SECRET: z.string(),
-  AMO_BASE_URL: z.string().url().optional(),
+export const Env = type({
+  AMO_API_KEY: "string",
+  AMO_API_SECRET: "string",
+  "AMO_BASE_URL?": "string",
 });
 
-export type Env = NoUndefined<z.infer<typeof envSchema>>;
+export type Env = typeof Env.infer;
 
 // For the `prepare` and `publish` steps
-export type FullContext = Required<NoUndefined<VerifyReleaseContext>> & {
-  env: Env;
-};
+export type PrepareContext = _PrepareContext & { env: Env };
+export type PublishContext = _PublishContext & { env: Env };
 
 export function applyContext(
   temp: string,
-  { branch, lastRelease, nextRelease, commits }: Readonly<FullContext>,
+  {
+    branch,
+    lastRelease,
+    nextRelease,
+    commits,
+  }: Readonly<PrepareContext> | Readonly<PublishContext>,
 ): string {
   return template(temp)({ branch, lastRelease, nextRelease, commits });
 }
-
-// "exactOptionalPropertyTypes": true
-type NoUndefined<T> = { [K in keyof T]: Exclude<T[K], undefined> };

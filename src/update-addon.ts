@@ -1,21 +1,10 @@
-import { createReadStream } from "node:fs";
-import fs from "node:fs/promises";
+import fs from "node:fs";
+import path from "node:path";
 import util from "node:util";
-import axios, { type AxiosResponse } from "axios";
-import FormData from "form-data";
+import SemanticReleaseError from "@semantic-release/error";
+import { type Type, type } from "arktype";
 import jwt from "jsonwebtoken";
-import { z } from "zod";
-
-export class UpdateAddonError extends Error {
-  constructor(
-    message: string,
-    readonly code?: string,
-    readonly details?: string,
-  ) {
-    super(message);
-    this.name = "UpdateAddonError";
-  }
-}
+import type { Signale } from "signale";
 
 export type Channel = "unlisted" | "listed";
 export type Application = "android" | "firefox";
@@ -23,17 +12,15 @@ export type Application = "android" | "firefox";
 export type UpdateAddonParams = {
   apiKey: string;
   apiSecret: string;
-  baseURL?: string;
+  baseURL: string;
   addonId: string;
   addonZipPath: string;
-  channel?: Channel;
-  approvalNotes?: string | null;
-  compatibility?: readonly Application[];
-  releaseNotes?: string | null;
-  sourceZipPath?: string | null;
-  logger?: Readonly<{
-    log(...messages: readonly unknown[]): void;
-  }>;
+  channel: Channel;
+  approvalNotes: string | null;
+  compatibility: readonly Application[];
+  releaseNotes: string | null;
+  sourceZipPath: string | null;
+  logger: Signale<"log">;
 };
 
 export async function updateAddon(
@@ -42,15 +29,15 @@ export async function updateAddon(
   const {
     apiKey,
     apiSecret,
-    baseURL = "https://addons.mozilla.org/",
+    baseURL,
     addonId,
     addonZipPath,
-    channel = "listed",
-    approvalNotes = null,
-    compatibility = ["firefox"],
-    releaseNotes = null,
-    sourceZipPath = null,
-    logger = console,
+    channel,
+    approvalNotes,
+    compatibility,
+    releaseNotes,
+    sourceZipPath,
+    logger,
   } = params;
   const apiParams = { apiKey, apiSecret, baseURL };
 
@@ -61,7 +48,7 @@ export async function updateAddon(
   });
 
   logger.log("Waiting for validation...");
-  await waitForValidation(apiParams, uploadId);
+  await awaitValidation(apiParams, uploadId);
 
   logger.log("Creating a version...");
   const { id: versionId } = await createVersion(apiParams, addonId, {
@@ -81,7 +68,7 @@ export async function updateAddon(
   }
 }
 
-function stringify(value: unknown): string {
+function inspect(value: unknown): string {
   return util.inspect(value, {
     breakLength: Number.POSITIVE_INFINITY,
     depth: Number.POSITIVE_INFINITY,
@@ -99,78 +86,89 @@ function jwtSign(key: string, secret: string): string {
   return jwt.sign(payload, secret, { algorithm: "HS256" });
 }
 
-function throwBadResponse(url: string, response: AxiosResponse): never {
-  throw new UpdateAddonError(
-    `A bad response was received from ${url} with status ${response.status}.`,
+function throwBadResponse(url: string, status: number, body: unknown): never {
+  throw new SemanticReleaseError(
+    `A bad response was received from ${url} with status ${status}.`,
     "EBADRESPONSE",
-    stringify(response.data),
+    inspect(body),
   );
 }
 
 type APIParams = Pick<UpdateAddonParams, "apiKey" | "apiSecret" | "baseURL">;
 
-async function apiFetch<T, Schema extends z.ZodType<T>>(
+async function apiFetch<ResponseBodyType extends Type>(
   { apiKey, apiSecret, baseURL }: Readonly<APIParams>,
   method: string,
   path: string,
   body: Readonly<Record<string, unknown>> | FormData | null,
-  schema: Schema,
-): Promise<T> {
-  const url = new URL(`/api/v5/addons/${path}`, baseURL).toString();
-  try {
-    const response = await axios({
-      url,
-      method,
-      headers: {
-        Authorization: `JWT ${jwtSign(apiKey, apiSecret)}`,
-      },
-      data: body,
-    });
-    const result = schema.safeParse(response.data);
-    if (!result.success) {
-      throwBadResponse(url, response);
-    }
-    return result.data;
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throwBadResponse(url, error.response);
-    } else {
-      throw error;
-    }
+  responseBodyType: ResponseBodyType,
+): Promise<ResponseBodyType["infer"]> {
+  const requestURL = new URL(`/api/v5/addons/${path}`, baseURL);
+  const requestHeaders: Record<string, string> = {
+    Authorization: `JWT ${jwtSign(apiKey, apiSecret)}`,
+  };
+  let requestBody: string | FormData | null;
+  if (body instanceof FormData || body == null) {
+    requestBody = body;
+  } else {
+    requestHeaders["Content-Type"] = "application/json";
+    requestBody = JSON.stringify(body);
   }
+  const response = await fetch(requestURL, {
+    method,
+    headers: requestHeaders,
+    body: requestBody,
+  });
+  const responseBodyRaw = response.headers
+    .get("Content-Type")
+    ?.includes("application/json")
+    ? await response.json()
+    : await response.text();
+  if (!response.ok) {
+    throwBadResponse(response.url, response.status, responseBodyRaw);
+  }
+  const responseBody = responseBodyType(responseBodyRaw);
+  if (responseBodyType instanceof type.errors) {
+    throwBadResponse(response.url, response.status, responseBodyRaw);
+  }
+  return responseBody;
 }
 
-const uploadSchema = z.object({
-  uuid: z.string(),
-  processed: z.boolean(),
-  valid: z.boolean(),
-  validation: z.record(z.string(), z.unknown()).nullable(),
+const Upload = type({
+  uuid: "string",
+  processed: "boolean",
+  valid: "boolean",
+  validation: "Record<string, unknown> | null",
 });
 
-type Upload = z.infer<typeof uploadSchema>;
+type Upload = typeof Upload.infer;
 
 async function createUpload(
   apiParams: Readonly<APIParams>,
   { uploadPath, channel }: Readonly<{ uploadPath: string; channel: Channel }>,
 ): Promise<Upload> {
   const formData = new FormData();
-  formData.append("upload", createReadStream(uploadPath), {
-    knownLength: (await fs.stat(uploadPath)).size,
-  });
+  formData.append(
+    "upload",
+    await fs.openAsBlob(uploadPath, { type: "application/zip" }),
+    path.basename(uploadPath),
+  );
   formData.append("channel", channel);
-  return apiFetch(apiParams, "POST", "upload/", formData, uploadSchema);
+  return apiFetch(apiParams, "POST", "upload/", formData, Upload);
 }
 
 function getUpload(
   apiParams: Readonly<APIParams>,
   uuid: string,
 ): Promise<Upload> {
-  return apiFetch(apiParams, "GET", `upload/${uuid}/`, null, uploadSchema);
+  return apiFetch(apiParams, "GET", `upload/${uuid}/`, null, Upload);
 }
 
-const versionSchema = z.object({ id: z.number() });
+const Version = type({
+  id: "number",
+});
 
-type Version = z.infer<typeof versionSchema>;
+type Version = typeof Version.infer;
 
 function createVersion(
   apiParams: Readonly<APIParams>,
@@ -187,7 +185,7 @@ function createVersion(
     "POST",
     `addon/${addonId}/versions/`,
     body,
-    versionSchema,
+    Version,
   );
 }
 
@@ -198,53 +196,58 @@ async function patchVersion(
   { sourcePath }: Readonly<{ sourcePath: string }>,
 ): Promise<Version> {
   const formData = new FormData();
-  formData.append("source", createReadStream(sourcePath), {
-    knownLength: (await fs.stat(sourcePath)).size,
-  });
+  formData.append(
+    "source",
+    await fs.openAsBlob(sourcePath, { type: "application/zip" }),
+    path.basename(sourcePath),
+  );
   return apiFetch(
     apiParams,
     "PATCH",
     `addon/${addonId}/versions/${id}/`,
     formData,
-    versionSchema,
+    Version,
   );
 }
 
-function waitForValidation(
+function awaitValidation(
   apiParams: Readonly<APIParams>,
   uuid: string,
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    let intervalId: NodeJS.Timeout | null = null;
-    const timeoutId = setTimeout(() => {
-      if (intervalId) {
-        clearTimeout(intervalId);
+    let pollTimeout: NodeJS.Timeout | null = null;
+    const abortTimeout = setTimeout(() => {
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
       }
       reject(
-        new UpdateAddonError("Validation timed out.", "EVALIDATIONTIMEOUT"),
+        new SemanticReleaseError("Validation timed out.", "EVALIDATIONTIMEOUT"),
       );
     }, 300000); // 5 minutes
     const poll = () =>
       void getUpload(apiParams, uuid)
         .then(({ processed, valid, validation }) => {
           if (processed) {
-            clearTimeout(timeoutId);
+            clearTimeout(abortTimeout);
             if (valid) {
               resolve();
             } else {
               reject(
-                new UpdateAddonError(
+                new SemanticReleaseError(
                   "Validation failed.",
                   "EVALIDATIONFAILURE",
-                  stringify(validation),
+                  inspect(validation),
                 ),
               );
             }
           } else {
-            intervalId = setTimeout(poll, 1000); // 1 second
+            pollTimeout = setTimeout(poll, 1000); // 1 second
           }
         })
-        .catch((error) => reject(error));
+        .catch((error) => {
+          clearTimeout(abortTimeout);
+          reject(error);
+        });
     poll();
   });
 }

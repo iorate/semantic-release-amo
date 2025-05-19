@@ -1,18 +1,34 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import util from "node:util";
 import SemanticReleaseError from "@semantic-release/error";
-import zipDir from "zip-dir";
-import { z } from "zod";
+import Zip from "adm-zip";
+import { type } from "arktype";
+import { execa } from "execa";
 import {
-  type FullContext,
   type PluginConfig,
+  type PrepareContext,
   applyContext,
   applyDefaults,
 } from "./common.js";
 
+type ZipWithAddLocalFileAsync = Zip & {
+  addLocalFileAsync(
+    options:
+      | {
+          localPath: string;
+          zipPath?: string;
+          zipName?: string;
+          comment?: string;
+        }
+      | string,
+    callback: (err: Error | undefined, done: boolean) => void,
+  ): void;
+};
+
 export async function prepare(
   pluginConfig: Readonly<PluginConfig>,
-  context: Readonly<FullContext>,
+  context: Readonly<PrepareContext>,
 ): Promise<void> {
   const {
     addonDirPath,
@@ -27,12 +43,10 @@ export async function prepare(
   logger.log("Updating manifest.json...");
   const manifestJsonPath = path.join(addonDirPath, "manifest.json");
   const manifestJson = await fs.readFile(manifestJsonPath, "utf8");
-  let manifest: Record<string, unknown>;
-  try {
-    manifest = z
-      .record(z.string(), z.unknown())
-      .parse(JSON.parse(manifestJson));
-  } catch {
+  const manifest = type("string.json.parse").to("Record<string, unknown>")(
+    manifestJson,
+  );
+  if (manifest instanceof type.errors) {
     throw new SemanticReleaseError(
       `An invalid manifest was read from ${manifestJsonPath}.`,
       "EINVALIDMANIFEST",
@@ -47,18 +61,25 @@ export async function prepare(
 
   logger.log("Archiving the add-on...");
   await fs.mkdir(path.dirname(addonZipPath), { recursive: true });
-  await zipDir(addonDirPath, { saveTo: addonZipPath });
+  const addonZip = new Zip();
+  await addonZip.addLocalFolderPromise(addonDirPath, {});
+  await addonZip.writeZipPromise(addonZipPath);
 
   if (submitSource) {
     logger.log("Archiving the source code...");
+    const { stdout: files } = await execa({
+      lines: true,
+    })`git ls-files --recurse-submodules`;
     await fs.mkdir(path.dirname(sourceZipPath), { recursive: true });
-    const { execa } = await import("execa");
-    await execa("git", [
-      "archive",
-      "--format=zip",
-      "-o",
-      sourceZipPath,
-      "HEAD",
-    ]);
+    const sourceZip = new Zip() as ZipWithAddLocalFileAsync;
+    const addLocalFilePromise = util.promisify(
+      sourceZip.addLocalFileAsync.bind(sourceZip),
+    );
+    await Promise.all(
+      files.map((file) =>
+        addLocalFilePromise({ localPath: file, zipPath: path.dirname(file) }),
+      ),
+    );
+    await sourceZip.writeZipPromise(sourceZipPath);
   }
 }

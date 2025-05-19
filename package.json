@@ -24,42 +24,38 @@
     "./dist/*.js"
   ],
   "scripts": {
-    "build": "tsc",
-    "check": "pnpm run --sequential /^check:/",
+    "build": "esbuild src/*.ts --outbase=src --outdir=dist",
+    "check": "pnpm run /^check:/",
     "check:biome": "biome check",
     "check:prettier": "prettier --check .",
-    "check:tsc": "tsc --noEmit",
+    "check:tsc": "tsc",
     "ci": "pnpm run --sequential /^ci:/",
     "ci:biome": "biome ci --reporter=github",
     "ci:prettier": "prettier --check .",
-    "ci:tsc": "tsc --noEmit",
-    "fix": "pnpm run --sequential /^fix:/",
+    "ci:tsc": "tsc",
+    "fix": "pnpm run /^fix:/",
     "fix:biome": "biome check --write",
     "fix:prettier": "prettier --write ."
   },
-  "release": {
-    "branches": [
-      "main"
-    ]
-  },
   "dependencies": {
     "@semantic-release/error": "^4.0.0",
-    "axios": "^1.9.0",
+    "adm-zip": "^0.5.16",
+    "arktype": "^2.1.20",
     "es-toolkit": "^1.38.0",
+    "esbuild": "^0.25.4",
     "execa": "^9.5.3",
-    "form-data": "^4.0.2",
     "jsonwebtoken": "^9.0.2",
-    "marked": "^15.0.11",
-    "zip-dir": "^2.0.0",
-    "zod": "^3.24.4",
-    "zod-validation-error": "^3.4.1"
+    "marked": "^15.0.11"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@types/adm-zip": "^0.5.7",
     "@types/jsonwebtoken": "^9.0.9",
-    "@types/lodash.template": "^4.5.3",
     "@types/node": "^22.15.19",
     "@types/semantic-release": "^20.0.6",
+    "@types/semantic-release__error": "^3.0.3",
+    "@types/signale": "^1.4.7",
+    "lefthook": "^1.11.13",
     "prettier": "^3.5.3",
     "semantic-release": "^24.2.4",
     "typescript": "^5.8.3"
@@ -67,5 +63,8 @@
   "peerDependencies": {
     "semantic-release": ">=20"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=18"
+  }
 }
