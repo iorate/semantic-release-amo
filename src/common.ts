@@ -1,5 +1,5 @@
-import template from "lodash.template";
-import type { Context } from "semantic-release";
+import { template } from "es-toolkit/compat";
+import type { VerifyReleaseContext } from "semantic-release";
 import { z } from "zod";
 
 export const pluginConfigSchema = z.object({
@@ -40,7 +40,9 @@ export const envSchema = z.object({
 export type Env = NoUndefined<z.infer<typeof envSchema>>;
 
 // For the `prepare` and `publish` steps
-export type FullContext = Required<NoUndefined<Context>> & { env: Env };
+export type FullContext = Required<NoUndefined<VerifyReleaseContext>> & {
+  env: Env;
+};
 
 export function applyContext(
   temp: string,

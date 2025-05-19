@@ -14,7 +14,7 @@ function parseReleaseNotes(releaseNotes: string): string {
       heading: (text) => `\n<b>${text}</b>\n`,
     },
   });
-  return marked.parse(releaseNotes).trim();
+  return marked.parse(releaseNotes, { async: false }).trim();
 }
 
 export async function publish(

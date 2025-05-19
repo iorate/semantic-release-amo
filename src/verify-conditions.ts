@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import SemanticReleaseError from "@semantic-release/error";
-import type { Context } from "semantic-release";
+import type { VerifyReleaseContext } from "semantic-release";
 import { fromZodError } from "zod-validation-error";
 import { envSchema, pluginConfigSchema } from "./common";
 
@@ -22,7 +22,7 @@ async function exists(path: string): Promise<boolean> {
 
 export async function verifyConditions(
   pluginConfig: Readonly<Record<string, unknown>>,
-  context: Readonly<Context>,
+  context: Readonly<VerifyReleaseContext>,
 ): Promise<void> {
   const { env } = context;
 
@@ -71,17 +71,6 @@ export async function verifyConditions(
   }
 
   if (errors.length) {
-    const { default: _AggregateError } = await import("aggregate-error");
-    class AggregateError extends _AggregateError {
-      constructor(errors: readonly Error[]) {
-        super(errors);
-      }
-      *[Symbol.iterator](): IterableIterator<Error> {
-        for (const error of this.errors) {
-          yield error;
-        }
-      }
-    }
     throw new AggregateError(errors);
   }
 }
