@@ -1,7 +1,7 @@
 {
   "name": "semantic-release-amo",
   "version": "1.0.0",
-  "description": "A semantic-release plugin to publish Firefox add-ons to AMO (addons.mozilla.org).",
+  "description": "A semantic-release plugin for publishing Firefox add-ons to AMO (addons.mozilla.org) using the official AMO API.",
   "keywords": [
     "semantic-release",
     "amo",
@@ -9,15 +9,10 @@
     "add-on"
   ],
   "homepage": "https://github.com/iorate/semantic-release-amo#readme",
-  "bugs": {
-    "url": "https://github.com/iorate/semantic-release-amo/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/iorate/semantic-release-amo.git"
-  },
+  "bugs": "https://github.com/iorate/semantic-release-amo/issues",
+  "repository": "iorate/semantic-release-amo",
   "license": "MIT",
-  "author": "iorate",
+  "author": "iorate <dev.iorate@gmail.com>",
   "type": "module",
   "exports": "./dist/index.js",
   "files": [
