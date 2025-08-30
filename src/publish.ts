@@ -1,9 +1,9 @@
 import { marked } from "marked";
 import {
-  type PluginConfig,
-  type PublishContext,
   applyContext,
   applyDefaults,
+  type PluginConfig,
+  type PublishContext,
 } from "./common.js";
 import { updateAddon } from "./update-addon.js";
 

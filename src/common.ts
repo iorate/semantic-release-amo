@@ -23,12 +23,14 @@ export function applyDefaults(
   pluginConfig: Readonly<PluginConfig>,
 ): Required<PluginConfig> {
   return {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: This is a template string processed by es-toolkit.
     addonZipPath: "./semantic-release-amo/${nextRelease.version}.zip",
     channel: "listed",
     approvalNotes: null,
     compatibility: ["firefox"],
     submitReleaseNotes: false,
     submitSource: false,
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: This is a template string processed by es-toolkit.
     sourceZipPath: "./semantic-release-amo/${nextRelease.version}-src.zip",
     ...pluginConfig,
   };

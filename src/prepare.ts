@@ -6,10 +6,10 @@ import Zip from "adm-zip";
 import { type } from "arktype";
 import { execa } from "execa";
 import {
-  type PluginConfig,
-  type PrepareContext,
   applyContext,
   applyDefaults,
+  type PluginConfig,
+  type PrepareContext,
 } from "./common.js";
 
 type ZipWithAddLocalFileAsync = Zip & {
