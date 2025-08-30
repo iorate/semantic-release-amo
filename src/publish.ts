@@ -1,4 +1,3 @@
-import { marked } from "marked";
 import {
   applyContext,
   applyDefaults,
@@ -8,14 +7,7 @@ import {
 import { updateAddon } from "./update-addon.js";
 
 function parseReleaseNotes(releaseNotes: string): string {
-  marked.use({
-    renderer: {
-      heading({ tokens }) {
-        return `\n<b>${this.parser.parseInline(tokens)}</b>\n`;
-      },
-    },
-  });
-  return marked.parse(releaseNotes, { async: false }).trim();
+  return releaseNotes.replaceAll(/^#{1,6}\s+(.+)$/gm, "**$1**");
 }
 
 export async function publish(

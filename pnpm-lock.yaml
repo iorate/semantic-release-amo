@@ -29,9 +29,6 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
-      marked:
-        specifier: ^15.0.11
-        version: 15.0.11
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.2.2
