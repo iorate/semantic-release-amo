@@ -22,15 +22,11 @@
     "build": "esbuild src/*.ts --outbase=src --outdir=dist",
     "check": "pnpm run /^check:/",
     "check:biome": "biome check",
-    "check:prettier": "prettier --check .",
+    "check:prettier": "prettier --check **/*.{md,yaml,yml}",
     "check:tsc": "tsc",
-    "ci": "pnpm run --sequential /^ci:/",
-    "ci:biome": "biome ci --reporter=github",
-    "ci:prettier": "prettier --check .",
-    "ci:tsc": "tsc",
     "fix": "pnpm run /^fix:/",
     "fix:biome": "biome check --write",
-    "fix:prettier": "prettier --write ."
+    "fix:prettier": "prettier --write **/*.{md,yaml,yml}"
   },
   "dependencies": {
     "@semantic-release/error": "^4.0.0",

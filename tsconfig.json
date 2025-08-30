@@ -1,14 +1,28 @@
 {
+  "include": ["src"],
+
   "compilerOptions": {
+    // Type Checking
     "exactOptionalPropertyTypes": true,
-    "lib": ["ES2022"],
-    "module": "Node18",
-    "noEmit": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true,
     "strict": true,
-    "target": "ES2022",
-    "verbatimModuleSyntax": true
-  },
-  "include": ["src"]
+
+    // Modules
+    "module": "node20",
+
+    // Emit
+    "noEmit": true,
+
+    // Interop Constraints
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    // Language and Environment
+    "lib": ["esnext"],
+    "target": "esnext",
+
+    // Completeness
+    "skipLibCheck": true
+  }
 }
