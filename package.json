@@ -36,30 +36,29 @@
     "@semantic-release/error": "^4.0.0",
     "adm-zip": "^0.5.16",
     "arktype": "^2.1.20",
-    "es-toolkit": "^1.38.0",
-    "esbuild": "^0.25.4",
-    "execa": "^9.5.3",
+    "es-toolkit": "^1.39.10",
+    "esbuild": "^0.25.9",
+    "execa": "^9.6.0",
     "jsonwebtoken": "^9.0.2",
     "marked": "^15.0.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.2.2",
     "@types/adm-zip": "^0.5.7",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^22.15.19",
-    "@types/semantic-release": "^20.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.3.0",
     "@types/semantic-release__error": "^3.0.3",
     "@types/signale": "^1.4.7",
-    "lefthook": "^1.11.13",
-    "prettier": "^3.5.3",
-    "semantic-release": "^24.2.4",
-    "typescript": "^5.8.3"
+    "lefthook": "^1.12.3",
+    "prettier": "^3.6.2",
+    "semantic-release": "^24.2.7",
+    "typescript": "^5.9.2"
   },
   "peerDependencies": {
     "semantic-release": ">=20"
   },
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@10.15.0",
   "engines": {
-    "node": ">=18"
+    "pnpm": ">=10"
   }
 }
